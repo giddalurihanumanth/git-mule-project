@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="574b19f8-fc41-4319-ad41-263c214ac2ce" basePath="sample_emp" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="5ff86950-131f-471f-86c6-9932c67833fa" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="netweb12" database="mysql" />
+	</db:config>
+	<flow name="parallel-for-eachFlow1" doc:id="11ef755d-338c-4489-9146-e54065f67591" >
+		<http:listener doc:name="Listener" doc:id="2009a805-3981-4aa0-a56f-ef6208c4be7b" config-ref="HTTP_Listener_config" path="fetch"/>
+		<logger level="INFO" doc:name="Logger" doc:id="51f6eb4f-aab6-47a0-9d1e-11468edb27fd" message="flow started"/>
+		<db:select doc:name="Select" doc:id="4c3e00b7-ebdc-4815-8d61-39a8c9194704" config-ref="Database_Config">
+			<db:sql ><![CDATA[select emp_id,emp_name,emp_status,Salary,age from sample_emp]]></db:sql>
+		</db:select>
+		<parallel-foreach doc:name="Parallel For Each" doc:id="108de533-1ef1-40c1-a479-219d3eee8cb1" collection="#[payload]">
+			<logger level="INFO" doc:name="Logger" doc:id="b68488ea-a119-48aa-9b52-450d4de0edde" message="#[payload]"/>
+			<http:request method="GET" doc:name="Request" doc:id="3a74413e-5279-4c28-b7bc-d137cfe1eb4c" url="https://dummy.restapiexample.com/api/v1/employee/1"/>
+			<ee:transform doc:name="Transform Message" doc:id="715726d5-4e4e-4976-a090-bc6e897f19a4" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload
+]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+		</parallel-foreach>
+		<ee:transform doc:name="Transform Message" doc:id="d9db52d3-7a23-4beb-8f23-f30659e19d41" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	responce: "success"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
