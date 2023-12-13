@@ -37,7 +37,7 @@ payload
 output application/json
 ---
 {
-	responce: "success"
+	responce: "successfully added"
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
